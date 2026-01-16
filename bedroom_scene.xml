@@ -14,44 +14,72 @@
   </visual>
 
   <asset>
-    <!-- 材质定义 -->
+    <!-- 纹理定义 -->
     <texture name="floor_texture" type="2d" builtin="checker" rgb1="0.7 0.6 0.5" rgb2="0.6 0.5 0.4" width="512" height="512"/>
     <texture name="wall_texture" type="2d" builtin="flat" rgb1="0.9 0.9 0.85" width="512" height="512"/>
     <texture name="wood_texture" type="2d" builtin="checker" rgb1="0.4 0.25 0.15" rgb2="0.35 0.2 0.1" width="512" height="512"/>
-    <texture name="bed_texture" type="2d" builtin="flat" rgb1="0.3 0.5 0.7" width="512" height="512"/>
+    <texture name="wood_dark_texture" type="2d" builtin="checker" rgb1="0.3 0.2 0.1" rgb2="0.25 0.15 0.08" width="512" height="512"/>
+    <texture name="fabric_texture" type="2d" builtin="flat" rgb1="0.3 0.5 0.7" width="512" height="512"/>
     <texture name="metal_texture" type="2d" builtin="flat" rgb1="0.7 0.7 0.8" width="512" height="512"/>
+    <texture name="glass_texture" type="2d" builtin="flat" rgb1="0.8 0.9 1.0" width="256" height="256"/>
+    <texture name="carpet_texture" type="2d" builtin="checker" rgb1="0.6 0.3 0.2" rgb2="0.55 0.25 0.15" width="512" height="512"/>
+    <texture name="marble_texture" type="2d" builtin="checker" rgb1="0.9 0.9 0.88" rgb2="0.85 0.85 0.83" width="512" height="512"/>
 
-    <material name="floor_mat" texture="floor_texture" texrepeat="5 5" specular="0.3" shininess="0.1"/>
-    <material name="wall_mat" texture="wall_texture" specular="0.1" shininess="0.05"/>
-    <material name="wood_mat" texture="wood_texture" texrepeat="2 2" specular="0.2" shininess="0.1"/>
-    <material name="bed_mat" texture="bed_texture" specular="0.1" shininess="0.05"/>
-    <material name="metal_mat" texture="metal_texture" specular="0.8" shininess="0.5"/>
+    <!-- 材质定义 -->
+    <material name="floor_mat" texture="floor_texture" texrepeat="8 8" specular="0.4" shininess="0.15" reflectance="0.1"/>
+    <material name="wall_mat" texture="wall_texture" specular="0.1" shininess="0.05" reflectance="0.02"/>
+    <material name="wood_mat" texture="wood_texture" texrepeat="2 2" specular="0.3" shininess="0.15" reflectance="0.05"/>
+    <material name="wood_dark_mat" texture="wood_dark_texture" texrepeat="2 2" specular="0.3" shininess="0.15" reflectance="0.05"/>
+    <material name="fabric_mat" texture="fabric_texture" specular="0.05" shininess="0.02" reflectance="0"/>
+    <material name="metal_mat" texture="metal_texture" specular="0.9" shininess="0.6" reflectance="0.3"/>
+    <material name="glass_mat" texture="glass_texture" specular="0.95" shininess="0.9" reflectance="0.5" rgba="0.7 0.8 0.9 0.4"/>
+    <material name="carpet_mat" texture="carpet_texture" texrepeat="4 4" specular="0.02" shininess="0.01" reflectance="0"/>
+    <material name="marble_mat" texture="marble_texture" texrepeat="3 3" specular="0.7" shininess="0.4" reflectance="0.2"/>
   </asset>
 
   <worldbody>
-    <!-- 光照 -->
-    <light directional="true" diffuse="0.8 0.8 0.8" specular="0.2 0.2 0.2" pos="0 0 4" dir="0 0 -1"/>
-    <light directional="true" diffuse="0.4 0.4 0.4" pos="-2 2 3" dir="1 -1 -1"/>
+    <!-- ========== 光照系统 ========== -->
+    <!-- 主全局光源 -->
+    <light directional="true" diffuse="0.9 0.9 0.9" specular="0.3 0.3 0.3" pos="0 0 5" dir="0 0 -1" castshadow="true"/>
 
+    <!-- 辅助环境光 -->
+    <light directional="true" diffuse="0.3 0.3 0.35" pos="-5 5 4" dir="0.5 -0.5 -1"/>
+
+    <!-- 卧室区域点光源 -->
+    <light mode="fixed" pos="-10 -6 4" dir="0 0 -1" directional="false" diffuse="0.5 0.5 0.4" specular="0.1 0.1 0.1" attenuation="1 0 0" cutoff="60"/>
+
+    <!-- 客厅+厨房组合光源 -->
+    <light directional="true" diffuse="0.7 0.7 0.7" specular="0.25 0.25 0.25" pos="5 0 4.5" dir="0 0 -1"/>
+
+    <!-- 走廊顶部光源 -->
+    <light mode="fixed" pos="0 9 3.5" dir="0 0 -1" directional="false" diffuse="0.4 0.4 0.4" specular="0.1 0.1 0.1" attenuation="1 0 0" cutoff="45"/>
+
+    <!-- ========== 环境结构 ========== -->
     <!-- 地板 -->
-    <geom name="floor" type="plane" size="5 4 0.1" pos="0 0 0" material="floor_mat" condim="3" friction="1 0.005 0.0001"/>
+    <geom name="floor" type="plane" size="15 12 0.1" pos="0 0 0" material="floor_mat" contype="0" conaffinity="1" condim="3" friction="1 0.005 0.0001"/>
 
-    <!-- 墙壁 -->
-    <!-- 后墙 -->
-    <geom name="wall_back" type="box" size="5 0.1 2.5" pos="0 -4 2.5" material="wall_mat" rgba="0.9 0.9 0.85 1"/>
-    <!-- 左墙 -->
-    <geom name="wall_left" type="box" size="0.1 4 2.5" pos="-5 0 2.5" material="wall_mat" rgba="0.9 0.9 0.85 1"/>
-    <!-- 右墙 -->
-    <geom name="wall_right" type="box" size="0.1 4 2.5" pos="5 0 2.5" material="wall_mat" rgba="0.9 0.9 0.85 1"/>
+    <!-- 外墙 -->
+    <geom name="wall_back" type="box" size="15 0.1 2.5" pos="0 -12 2.5" material="wall_mat" contype="0" conaffinity="1"/>
+    <geom name="wall_front" type="box" size="15 0.1 2.5" pos="0 12 2.5" material="wall_mat" contype="0" conaffinity="1"/>
+    <geom name="wall_left" type="box" size="0.1 12 2.5" pos="-15 0 2.5" material="wall_mat" contype="0" conaffinity="1"/>
+    <geom name="wall_right" type="box" size="0.1 12 2.5" pos="15 0 2.5" material="wall_mat" contype="0" conaffinity="1"/>
 
-    <!-- 床 (放在房间左后角) -->
+    <!-- 内墙 - 分隔房间 -->
+    <geom name="wall_bedroom_living" type="box" size="0.1 6 2.5" pos="-6 -6 2.5" material="wall_mat" contype="0" conaffinity="1"/>
+    <geom name="wall_bedroom_top" type="box" size="3 0.1 2.5" pos="-10.5 -6 2.5" material="wall_mat" contype="0" conaffinity="1"/>
+    <geom name="wall_bedroom_bottom" type="box" size="3 0.1 2.5" pos="-10.5 0 2.5" material="wall_mat" contype="0" conaffinity="1"/>
+    <geom name="wall_living_kitchen" type="box" size="0.1 8 2.5" pos="6 -4 2.5" material="wall_mat" contype="0" conaffinity="1"/>
+    <geom name="wall_kitchen_top" type="box" size="4.5 0.1 2.5" pos="10.5 4 2.5" material="wall_mat" contype="0" conaffinity="1"/>
+    <geom name="wall_kitchen_bottom" type="box" size="4.5 0.1 2.5" pos="10.5 8 2.5" material="wall_mat" contype="0" conaffinity="1"/>
+    <geom name="wall_corridor_left" type="box" size="3 0.1 2.5" pos="-9 8 2.5" material="wall_mat" contype="0" conaffinity="1"/>
+    <geom name="wall_corridor_right" type="box" size="3 0.1 2.5" pos="3 8 2.5" material="wall_mat" contype="0" conaffinity="1"/>
+
+    <!-- ========== 卧室区域 ========== -->
+    <!-- 床 -->
     <body name="bed" pos="-3 -2.5 0">
-      <!-- 床垫 -->
-      <geom name="mattress" type="box" size="1 1.5 0.3" pos="0 0 0.3" material="bed_mat" rgba="0.3 0.5 0.7 1"/>
-      <!-- 床架 -->
-      <geom name="bed_frame" type="box" size="1.1 1.6 0.1" pos="0 0 0.1" material="wood_mat" rgba="0.4 0.25 0.15 1"/>
-      <!-- 床头板 -->
-      <geom name="headboard" type="box" size="1.1 0.1 0.8" pos="0 -1.5 0.8" material="wood_mat" rgba="0.4 0.25 0.15 1"/>
+      <geom name="mattress" type="box" size="1 1.5 0.3" pos="0 0 0.3" material="fabric_mat" rgba="0.3 0.5 0.7 1" density="300"/>
+      <geom name="bed_frame" type="box" size="1.1 1.6 0.1" pos="0 0 0.1" material="wood_mat" density="500"/>
+      <geom name="headboard" type="box" size="1.1 0.1 0.8" pos="0 -1.5 0.8" material="wood_mat" density="500"/>
     </body>
 
     <!-- 书桌 (放在右侧) -->
@@ -95,57 +123,42 @@
       <geom name="nightstand_body" type="box" size="0.28 0.28 0.25" pos="0 0 0.25" material="wood_mat" rgba="0.4 0.25 0.15 1"/>
     </body>
 
-    <!-- 6自由度机械臂 (放置在书桌上) -->
+    <!-- ========== 机器人系统 ========== -->
+    <!-- 6自由度机械臂 -->
     <body name="robot_base" pos="3 -2 0.78">
-      <!-- 基座 -->
-      <geom name="base" type="cylinder" size="0.08 0.05" rgba="0.3 0.3 0.3 1" material="metal_mat"/>
-
-      <!-- 关节1: 基座旋转 -->
+      <geom name="base" contype="2" conaffinity="3" condim="3" type="cylinder" size="0.08 0.05" rgba="0.3 0.3 0.3 1" mass="0.5" material="metal_mat"/>
       <body name="link1" pos="0 0 0.05">
-        <joint name="joint1" type="hinge" axis="0 0 1" range="-180 180" damping="1"/>
-        <geom name="link1_geom" type="cylinder" size="0.05 0.1" rgba="0.2 0.4 0.8 1" material="metal_mat"/>
-        <geom name="link1_connector" type="box" size="0.04 0.04 0.05" pos="0 0 0.15" rgba="0.3 0.3 0.3 1"/>
-
-        <!-- 关节2: 肩关节 -->
+        <joint name="joint1" type="hinge" axis="0 0 1" range="-180 180" damping="1.5" armature="0.1"/>
+        <geom name="link1_geom" contype="2" conaffinity="3" condim="3" type="cylinder" size="0.05 0.1" rgba="0.2 0.4 0.8 1" mass="0.3" material="metal_mat"/>
+        <geom name="link1_connector" contype="2" conaffinity="3" condim="3" type="box" size="0.04 0.04 0.05" pos="0 0 0.15" rgba="0.3 0.3 0.3 1" mass="0.1"/>
         <body name="link2" pos="0 0 0.2" euler="0 90 0">
-          <joint name="joint2" type="hinge" axis="0 0 1" range="-90 90" damping="1"/>
-          <geom name="link2_geom" type="capsule" size="0.035" fromto="0 0 0 0.25 0 0" rgba="0.8 0.4 0.2 1" material="metal_mat"/>
-
-          <!-- 关节3: 肘关节 -->
+          <joint name="joint2" type="hinge" axis="0 0 1" range="-90 90" damping="1.5" armature="0.1"/>
+          <geom name="link2_geom" contype="2" conaffinity="3" condim="3" type="capsule" size="0.035" fromto="0 0 0 0.25 0 0" rgba="0.8 0.4 0.2 1" mass="0.25" material="metal_mat"/>
           <body name="link3" pos="0.25 0 0">
-            <joint name="joint3" type="hinge" axis="0 0 1" range="-150 150" damping="0.8"/>
-            <geom name="link3_geom" type="capsule" size="0.03" fromto="0 0 0 0.2 0 0" rgba="0.2 0.8 0.4 1" material="metal_mat"/>
-
-            <!-- 关节4: 腕关节1 -->
+            <joint name="joint3" type="hinge" axis="0 0 1" range="-150 150" damping="1.0" armature="0.08"/>
+            <geom name="link3_geom" contype="2" conaffinity="3" condim="3" type="capsule" size="0.03" fromto="0 0 0 0.2 0 0" rgba="0.2 0.8 0.4 1" mass="0.2" material="metal_mat"/>
             <body name="link4" pos="0.2 0 0">
-              <joint name="joint4" type="hinge" axis="1 0 0" range="-180 180" damping="0.5"/>
-              <geom name="link4_geom" type="cylinder" size="0.025 0.08" rgba="0.8 0.8 0.2 1" material="metal_mat"/>
-
-              <!-- 关节5: 腕关节2 -->
+              <joint name="joint4" type="hinge" axis="1 0 0" range="-180 180" damping="0.8" armature="0.05"/>
+              <geom name="link4_geom" contype="2" conaffinity="3" condim="3" type="cylinder" size="0.025 0.08" rgba="0.8 0.8 0.2 1" mass="0.15" material="metal_mat"/>
               <body name="link5" pos="0 0 0.08" euler="0 90 0">
-                <joint name="joint5" type="hinge" axis="0 0 1" range="-120 120" damping="0.5"/>
-                <geom name="link5_geom" type="cylinder" size="0.02 0.06" rgba="0.8 0.2 0.8 1" material="metal_mat"/>
-
-                <!-- 关节6: 腕关节3 (末端执行器) -->
+                <joint name="joint5" type="hinge" axis="0 0 1" range="-120 120" damping="0.6" armature="0.05"/>
+                <geom name="link5_geom" contype="2" conaffinity="3" condim="3" type="cylinder" size="0.02 0.06" rgba="0.8 0.2 0.8 1" mass="0.1" material="metal_mat"/>
                 <body name="link6" pos="0.06 0 0" euler="0 -90 0">
-                  <joint name="joint6" type="hinge" axis="0 0 1" range="-180 180" damping="0.3"/>
-                  <geom name="link6_geom" type="cylinder" size="0.015 0.03" rgba="0.5 0.5 0.5 1" material="metal_mat"/>
-
-                  <!-- 简易夹爪 -->
+                  <joint name="joint6" type="hinge" axis="0 0 1" range="-180 180" damping="0.4" armature="0.03"/>
+                  <geom name="link6_geom" contype="2" conaffinity="3" condim="3" type="cylinder" size="0.015 0.03" rgba="0.5 0.5 0.5 1" mass="0.05" material="metal_mat"/>
+                  <!-- 夹爪系统 -->
                   <body name="gripper_base" pos="0 0 0.03">
-                    <geom name="gripper_palm" type="box" size="0.03 0.02 0.01" rgba="0.3 0.3 0.3 1"/>
-
-                    <!-- 左爪 -->
+                    <geom name="gripper_palm" contype="2" conaffinity="3" condim="3" type="box" size="0.03 0.02 0.01" rgba="0.3 0.3 0.3 1" mass="0.05"/>
                     <body name="left_finger" pos="0 0.02 0.02">
-                      <joint name="left_finger_joint" type="slide" axis="0 1 0" range="0 0.03" damping="0.1"/>
-                      <geom name="left_finger_geom" type="box" size="0.015 0.005 0.03" pos="0 0.005 0" rgba="0.4 0.4 0.4 1"/>
+                      <joint name="left_finger_joint" type="slide" axis="0 1 0" range="0 0.03" damping="0.2" armature="0.01"/>
+                      <geom name="left_finger_geom" contype="2" conaffinity="3" condim="3" type="box" size="0.015 0.005 0.03" pos="0 0.005 0" rgba="0.4 0.4 0.4 1" mass="0.02"/>
                     </body>
-
-                    <!-- 右爪 -->
                     <body name="right_finger" pos="0 -0.02 0.02">
-                      <joint name="right_finger_joint" type="slide" axis="0 -1 0" range="0 0.03" damping="0.1"/>
-                      <geom name="right_finger_geom" type="box" size="0.015 0.005 0.03" pos="0 -0.005 0" rgba="0.4 0.4 0.4 1"/>
+                      <joint name="right_finger_joint" type="slide" axis="0 -1 0" range="0 0.03" damping="0.2" armature="0.01"/>
+                      <geom name="right_finger_geom" contype="2" conaffinity="3" condim="3" type="box" size="0.015 0.005 0.03" pos="0 -0.005 0" rgba="0.4 0.4 0.4 1" mass="0.02"/>
                     </body>
+                    <!-- 末端执行器传感器位置 -->
+                    <site name="ee_site" pos="0 0 0.04" size="0.01" rgba="1 0 0 0.5"/>
                   </body>
                 </body>
               </body>
@@ -155,35 +168,246 @@
       </body>
     </body>
 
-    <!-- 简易移动小车 (可选，放在房间中央) -->
+    <!-- 移动机器人平台 -->
     <body name="mobile_robot" pos="0 1 0.1">
-      <!-- 车体 -->
       <freejoint/>
-      <geom name="robot_body" type="box" size="0.3 0.2 0.1" pos="0 0 0" rgba="0.6 0.6 0.6 1" mass="5"/>
-
-      <!-- 轮子 -->
-      <geom name="wheel_fl" type="cylinder" size="0.05 0.02" pos="0.2 0.15 -0.05" euler="90 0 0" rgba="0.2 0.2 0.2 1"/>
-      <geom name="wheel_fr" type="cylinder" size="0.05 0.02" pos="0.2 -0.15 -0.05" euler="90 0 0" rgba="0.2 0.2 0.2 1"/>
-      <geom name="wheel_bl" type="cylinder" size="0.05 0.02" pos="-0.2 0.15 -0.05" euler="90 0 0" rgba="0.2 0.2 0.2 1"/>
-      <geom name="wheel_br" type="cylinder" size="0.05 0.02" pos="-0.2 -0.15 -0.05" euler="90 0 0" rgba="0.2 0.2 0.2 1"/>
-
-      <!-- 传感器平台 -->
-      <geom name="sensor_platform" type="cylinder" size="0.08 0.05" pos="0 0 0.15" rgba="0.3 0.5 0.8 1"/>
+      <geom name="robot_body" contype="2" conaffinity="3" condim="3" type="box" size="0.3 0.2 0.1" pos="0 0 0" rgba="0.6 0.6 0.6 1" mass="5"/>
+      <geom name="wheel_fl" contype="2" conaffinity="3" condim="3" type="cylinder" size="0.05 0.02" pos="0.2 0.15 -0.05" euler="90 0 0" rgba="0.2 0.2 0.2 1" mass="0.2"/>
+      <geom name="wheel_fr" contype="2" conaffinity="3" condim="3" type="cylinder" size="0.05 0.02" pos="0.2 -0.15 -0.05" euler="90 0 0" rgba="0.2 0.2 0.2 1" mass="0.2"/>
+      <geom name="wheel_bl" contype="2" conaffinity="3" condim="3" type="cylinder" size="0.05 0.02" pos="-0.2 0.15 -0.05" euler="90 0 0" rgba="0.2 0.2 0.2 1" mass="0.2"/>
+      <geom name="wheel_br" contype="2" conaffinity="3" condim="3" type="cylinder" size="0.05 0.02" pos="-0.2 -0.15 -0.05" euler="90 0 0" rgba="0.2 0.2 0.2 1" mass="0.2"/>
+      <geom name="sensor_platform" contype="2" conaffinity="3" condim="3" type="cylinder" size="0.08 0.05" pos="0 0 0.15" rgba="0.3 0.5 0.8 1" mass="0.5"/>
+      <!-- 移动机器人传感器位置 -->
+      <site name="mobile_base_site" pos="0 0 0.2" size="0.02" rgba="0 1 0 0.5"/>
     </body>
 
-    <!-- 装饰物品 - 台灯 (放在床头柜上) -->
+    <!-- ========== 客厅区域 ========== -->
+    <!-- 沙发 (L型) -->
+    <body name="sofa_main" pos="-2 2 0">
+      <geom name="sofa_seat" type="box" size="1.5 0.6 0.25" pos="0 0 0.45" material="fabric_mat" rgba="0.4 0.35 0.3 1"/>
+      <geom name="sofa_back" type="box" size="1.5 0.15 0.4" pos="0 -0.45 0.7" material="fabric_mat" rgba="0.35 0.3 0.25 1"/>
+      <geom name="sofa_arm_left" type="box" size="0.15 0.6 0.3" pos="-1.5 0 0.5" material="fabric_mat" rgba="0.35 0.3 0.25 1"/>
+      <geom name="sofa_arm_right" type="box" size="0.15 0.6 0.3" pos="1.5 0 0.5" material="fabric_mat" rgba="0.35 0.3 0.25 1"/>
+    </body>
+
+    <body name="sofa_side" pos="-3 3.5 0">
+      <geom name="sofa_side_seat" type="box" size="0.6 0.9 0.25" pos="0 0 0.45" material="fabric_mat" rgba="0.4 0.35 0.3 1"/>
+      <geom name="sofa_side_back" type="box" size="0.15 0.9 0.4" pos="-0.45 0 0.7" material="fabric_mat" rgba="0.35 0.3 0.25 1"/>
+      <geom name="sofa_side_arm" type="box" size="0.6 0.15 0.3" pos="0 0.9 0.5" material="fabric_mat" rgba="0.35 0.3 0.25 1"/>
+    </body>
+
+    <!-- 茶几 -->
+    <body name="coffee_table" pos="0 3 0">
+      <geom name="coffee_table_top" type="box" size="0.8 0.5 0.02" pos="0 0 0.4" material="glass_mat"/>
+      <geom name="coffee_leg1" type="cylinder" size="0.03 0.2" pos="0.7 0.4 0.2" material="metal_mat"/>
+      <geom name="coffee_leg2" type="cylinder" size="0.03 0.2" pos="-0.7 0.4 0.2" material="metal_mat"/>
+      <geom name="coffee_leg3" type="cylinder" size="0.03 0.2" pos="0.7 -0.4 0.2" material="metal_mat"/>
+      <geom name="coffee_leg4" type="cylinder" size="0.03 0.2" pos="-0.7 -0.4 0.2" material="metal_mat"/>
+    </body>
+
+    <!-- 电视柜 -->
+    <body name="tv_stand" pos="0 -10 0">
+      <!-- 柜体 -->
+      <geom name="tv_stand_body" type="box" size="1.2 0.35 0.3" pos="0 0 0.3" material="wood_mat" rgba="0.3 0.2 0.15 1"/>
+      <!-- 柜门左 -->
+      <geom name="tv_stand_door_l" type="box" size="0.55 0.03 0.25" pos="-0.6 0.35 0.3" material="wood_mat" rgba="0.35 0.25 0.2 1"/>
+      <!-- 柜门右 -->
+      <geom name="tv_stand_door_r" type="box" size="0.55 0.03 0.25" pos="0.6 0.35 0.3" material="wood_mat" rgba="0.35 0.25 0.2 1"/>
+    </body>
+
+    <!-- 电视 -->
+    <body name="tv" pos="0 -10.2 0.6">
+      <!-- 电视屏幕 -->
+      <geom name="tv_screen" type="box" size="0.8 0.05 0.45" pos="0 0 0.45" rgba="0.1 0.1 0.15 1"/>
+      <!-- 电视边框 -->
+      <geom name="tv_frame" type="box" size="0.85 0.03 0.5" pos="0 -0.03 0.45" rgba="0.2 0.2 0.2 1"/>
+      <!-- 支架 -->
+      <geom name="tv_stand_pole" type="cylinder" size="0.04 0.15" pos="0 0 -0.15" rgba="0.3 0.3 0.3 1"/>
+    </body>
+
+    <!-- 边桌 (沙发旁) -->
+    <body name="side_table" pos="-4 1.5 0">
+      <geom name="side_table_top" type="cylinder" size="0.25 0.03" pos="0 0 0.55" material="wood_mat" rgba="0.45 0.3 0.2 1"/>
+      <geom name="side_table_leg" type="cylinder" size="0.04 0.55" pos="0 0 0.275" material="wood_mat" rgba="0.4 0.25 0.15 1"/>
+    </body>
+
+    <!-- 地毯 (客厅中央) -->
+    <body name="carpet" pos="0 2 0.005">
+      <geom name="carpet_geom" type="box" size="2.5 2 0.005" pos="0 0 0" material="carpet_mat" contype="0" conaffinity="1"/>
+    </body>
+
+    <!-- ========== 装饰物品 ========== -->
+    <!-- 台灯 (床头柜上) -->
     <body name="lamp" pos="-1.3 -2.5 0.58">
-      <geom name="lamp_base" type="cylinder" size="0.05 0.02" rgba="0.6 0.6 0.6 1"/>
-      <geom name="lamp_pole" type="cylinder" size="0.01 0.15" pos="0 0 0.17" rgba="0.5 0.5 0.5 1"/>
-      <geom name="lamp_shade" type="cylinder" size="0.08 0.06" pos="0 0 0.38" rgba="0.9 0.9 0.7 0.8"/>
+      <geom name="lamp_base" contype="0" conaffinity="0" type="cylinder" size="0.05 0.02" rgba="0.6 0.6 0.6 1"/>
+      <geom name="lamp_pole" contype="0" conaffinity="0" type="cylinder" size="0.01 0.15" pos="0 0 0.17" rgba="0.5 0.5 0.5 1"/>
+      <geom name="lamp_shade" contype="0" conaffinity="0" type="cylinder" size="0.08 0.06" pos="0 0 0.38" rgba="0.9 0.9 0.7 0.8"/>
     </body>
 
-    <!-- 装饰物品 - 书本 (放在书桌上) -->
+    <!-- 书本 (书桌上) -->
     <body name="books" pos="2.5 -2 0.78">
-      <geom name="book1" type="box" size="0.08 0.12 0.02" pos="0 0 0.02" rgba="0.8 0.2 0.2 1"/>
-      <geom name="book2" type="box" size="0.08 0.12 0.02" pos="0 0 0.06" rgba="0.2 0.8 0.2 1"/>
-      <geom name="book3" type="box" size="0.08 0.12 0.02" pos="0 0 0.10" rgba="0.2 0.2 0.8 1"/>
+      <geom name="book1" contype="0" conaffinity="0" type="box" size="0.08 0.12 0.02" pos="0 0 0.02" rgba="0.8 0.2 0.2 1"/>
+      <geom name="book2" contype="0" conaffinity="0" type="box" size="0.08 0.12 0.02" pos="0 0 0.06" rgba="0.2 0.8 0.2 1"/>
+      <geom name="book3" contype="0" conaffinity="0" type="box" size="0.08 0.12 0.02" pos="0 0 0.10" rgba="0.2 0.2 0.8 1"/>
     </body>
+
+    <!-- 客厅花瓶 (边桌上) -->
+    <body name="vase" pos="-4 1.5 0.58">
+      <geom name="vase_body" contype="0" conaffinity="0" type="cylinder" size="0.08 0.15" pos="0 0 0.15" rgba="0.3 0.5 0.7 1"/>
+      <geom name="vase_neck" contype="0" conaffinity="0" type="cylinder" size="0.04 0.05" pos="0 0 0.33" rgba="0.3 0.5 0.7 1"/>
+    </body>
+
+    <!-- 茶几上的书 -->
+    <body name="coffee_table_books" pos="0 3 0.42">
+      <geom name="ctbook1" contype="0" conaffinity="0" type="box" size="0.15 0.12 0.02" pos="0 0 0" rgba="0.7 0.3 0.2 1"/>
+      <geom name="ctbook2" contype="0" conaffinity="0" type="box" size="0.15 0.12 0.02" pos="0 0 0.04" rgba="0.3 0.6 0.4 1"/>
+    </body>
+
+    <!-- 客厅盆栽 -->
+    <body name="plant1" pos="1 2 0">
+      <geom name="pot1" contype="0" conaffinity="0" type="cylinder" size="0.15 0.12" pos="0 0 0.12" rgba="0.6 0.4 0.3 1"/>
+      <geom name="plant1_stem" contype="0" conaffinity="0" type="cylinder" size="0.02 0.3" pos="0 0 0.54" rgba="0.2 0.6 0.2 1"/>
+      <geom name="plant1_leaf1" contype="0" conaffinity="0" type="sphere" size="0.12" pos="0.08 0 0.8" rgba="0.2 0.7 0.2 1"/>
+      <geom name="plant1_leaf2" contype="0" conaffinity="0" type="sphere" size="0.1" pos="-0.06 0.06 0.7" rgba="0.2 0.7 0.2 1"/>
+    </body>
+
+    <!-- 厨房盆栽 -->
+    <body name="kitchen_plant" pos="9 0 0.79">
+      <geom name="kpot" contype="0" conaffinity="0" type="cylinder" size="0.08 0.06" pos="0 0 0.06" rgba="0.7 0.5 0.4 1"/>
+      <geom name="kplant" contype="0" conaffinity="0" type="sphere" size="0.1" pos="0 0 0.18" rgba="0.3 0.6 0.3 1"/>
+    </body>
+
+    <!-- 走廊装饰柜 -->
+    <body name="corridor_cabinet" pos="-12 9 0">
+      <geom name="ccabinet_body" type="box" size="0.6 0.35 0.4" pos="0 0 0.4" material="wood_mat"/>
+      <geom name="ccabinet_top" type="box" size="0.62 0.37 0.03" pos="0 0 0.83" material="wood_dark_mat"/>
+    </body>
+
+    <!-- 走廊花瓶 -->
+    <body name="corridor_vase" pos="-12 9 0.86">
+      <geom name="cvase" contype="0" conaffinity="0" type="cylinder" size="0.06 0.12" pos="0 0 0.12" rgba="0.8 0.6 0.3 1"/>
+    </body>
+
+    <!-- 相框墙饰 -->
+    <body name="wall_frame1" pos="0 -9.85 1.5">
+      <geom name="frame1" contype="0" conaffinity="0" type="box" size="0.3 0.02 0.4" pos="0 0 0" rgba="0.2 0.2 0.2 1"/>
+    </body>
+    <body name="wall_frame2" pos="-1 -9.85 1.5">
+      <geom name="frame2" contype="0" conaffinity="0" type="box" size="0.25 0.02 0.35" pos="0 0 0" rgba="0.2 0.2 0.2 1"/>
+    </body>
+    <body name="wall_frame3" pos="1 -9.85 1.5">
+      <geom name="frame3" contype="0" conaffinity="0" type="box" size="0.25 0.02 0.35" pos="0 0 0" rgba="0.2 0.2 0.2 1"/>
+    </body>
+
+    <!-- ========== 厨房区域 ========== -->
+    <!-- 橱柜 (地柜) -->
+    <body name="kitchen_cabinet_lower" pos="11 -8 0">
+      <geom name="cabinet_lower_body" type="box" size="2.5 0.6 0.45" pos="0 0 0.45" material="wood_mat" rgba="0.5 0.4 0.3 1"/>
+      <!-- 台面 -->
+      <geom name="countertop" type="box" size="2.6 0.65 0.05" pos="0 0 0.95" material="wood_mat" rgba="0.6 0.6 0.55 1"/>
+    </body>
+
+    <!-- 橱柜 (墙柜) -->
+    <body name="kitchen_cabinet_upper" pos="11 -8.5 1.5">
+      <geom name="cabinet_upper_body" type="box" size="2.3 0.35 0.6" pos="0 0 0" material="wood_mat" rgba="0.45 0.35 0.25 1"/>
+    </body>
+
+    <!-- 炉台 -->
+    <body name="stove" pos="10 -8 1.0">
+      <!-- 炉灶面板 -->
+      <geom name="stove_top" type="box" size="0.4 0.5 0.05" pos="0 0 0" rgba="0.2 0.2 0.2 1"/>
+      <!-- 炉眼1 -->
+      <geom name="burner1" type="cylinder" size="0.08 0.01" pos="-0.15 0.15 0.06" rgba="0.3 0.3 0.3 1"/>
+      <!-- 炉眼2 -->
+      <geom name="burner2" type="cylinder" size="0.08 0.01" pos="0.15 0.15 0.06" rgba="0.3 0.3 0.3 1"/>
+      <!-- 炉眼3 -->
+      <geom name="burner3" type="cylinder" size="0.08 0.01" pos="-0.15 -0.15 0.06" rgba="0.3 0.3 0.3 1"/>
+      <!-- 炉眼4 -->
+      <geom name="burner4" type="cylinder" size="0.08 0.01" pos="0.15 -0.15 0.06" rgba="0.3 0.3 0.3 1"/>
+    </body>
+
+    <!-- 冰箱 -->
+    <body name="refrigerator" pos="13.5 -8 0">
+      <!-- 冰箱主体 -->
+      <geom name="fridge_body" type="box" size="0.4 0.5 1.0" pos="0 0 1.0" rgba="0.85 0.85 0.9 1" material="metal_mat"/>
+      <!-- 冰箱门 (上层) -->
+      <geom name="fridge_door_upper" type="box" size="0.38 0.05 0.55" pos="0 0.52 1.4" rgba="0.9 0.9 0.95 1"/>
+      <!-- 冰箱门 (下层) -->
+      <geom name="fridge_door_lower" type="box" size="0.38 0.05 0.4" pos="0 0.52 0.5" rgba="0.9 0.9 0.95 1"/>
+      <!-- 把手 -->
+      <geom name="fridge_handle_upper" type="cylinder" size="0.02 0.15" pos="0.2 0.55 1.4" euler="0 90 0" rgba="0.5 0.5 0.5 1"/>
+      <geom name="fridge_handle_lower" type="cylinder" size="0.02 0.15" pos="0.2 0.55 0.5" euler="0 90 0" rgba="0.5 0.5 0.5 1"/>
+    </body>
+
+    <!-- 水槽 -->
+    <body name="sink" pos="12 -8 1.0">
+      <!-- 水槽盆 -->
+      <geom name="sink_basin" type="box" size="0.35 0.25 0.15" pos="0 0 -0.05" rgba="0.7 0.7 0.75 1" material="metal_mat"/>
+      <!-- 水龙头 -->
+      <geom name="faucet_base" type="cylinder" size="0.02 0.05" pos="0 -0.2 0.05" rgba="0.6 0.6 0.65 1"/>
+      <geom name="faucet_neck" type="capsule" size="0.015" fromto="0 -0.2 0.1 0 -0.1 0.25" rgba="0.6 0.6 0.65 1"/>
+      <geom name="faucet_spout" type="capsule" size="0.012" fromto="0 -0.1 0.25 0 0.05 0.2" rgba="0.6 0.6 0.65 1"/>
+    </body>
+
+    <!-- 餐桌 -->
+    <body name="dining_table" pos="9 0 0">
+      <!-- 桌面 -->
+      <geom name="dining_top" type="box" size="0.9 0.75 0.04" pos="0 0 0.75" material="wood_mat" rgba="0.5 0.35 0.25 1"/>
+      <!-- 桌腿 -->
+      <geom name="dining_leg1" type="cylinder" size="0.05 0.375" pos="0.8 0.65 0.375" material="wood_mat" rgba="0.4 0.25 0.15 1"/>
+      <geom name="dining_leg2" type="cylinder" size="0.05 0.375" pos="-0.8 0.65 0.375" material="wood_mat" rgba="0.4 0.25 0.15 1"/>
+      <geom name="dining_leg3" type="cylinder" size="0.05 0.375" pos="0.8 -0.65 0.375" material="wood_mat" rgba="0.4 0.25 0.15 1"/>
+      <geom name="dining_leg4" type="cylinder" size="0.05 0.375" pos="-0.8 -0.65 0.375" material="wood_mat" rgba="0.4 0.25 0.15 1"/>
+    </body>
+
+    <!-- 餐椅1 -->
+    <body name="dining_chair1" pos="9 1.3 0">
+      <geom name="dchair1_seat" type="box" size="0.25 0.25 0.03" pos="0 0 0.45" material="wood_mat" rgba="0.35 0.2 0.1 1"/>
+      <geom name="dchair1_back" type="box" size="0.25 0.03 0.25" pos="0 -0.22 0.7" material="wood_mat" rgba="0.35 0.2 0.1 1"/>
+      <geom name="dchair1_leg1" type="cylinder" size="0.025 0.225" pos="0.2 0.2 0.225" material="wood_mat" rgba="0.35 0.2 0.1 1"/>
+      <geom name="dchair1_leg2" type="cylinder" size="0.025 0.225" pos="-0.2 0.2 0.225" material="wood_mat" rgba="0.35 0.2 0.1 1"/>
+      <geom name="dchair1_leg3" type="cylinder" size="0.025 0.225" pos="0.2 -0.2 0.225" material="wood_mat" rgba="0.35 0.2 0.1 1"/>
+      <geom name="dchair1_leg4" type="cylinder" size="0.025 0.225" pos="-0.2 -0.2 0.225" material="wood_mat" rgba="0.35 0.2 0.1 1"/>
+    </body>
+
+    <!-- 餐椅2 -->
+    <body name="dining_chair2" pos="9 -1.3 0">
+      <geom name="dchair2_seat" type="box" size="0.25 0.25 0.03" pos="0 0 0.45" material="wood_mat" rgba="0.35 0.2 0.1 1"/>
+      <geom name="dchair2_back" type="box" size="0.25 0.03 0.25" pos="0 0.22 0.7" material="wood_mat" rgba="0.35 0.2 0.1 1"/>
+      <geom name="dchair2_leg1" type="cylinder" size="0.025 0.225" pos="0.2 0.2 0.225" material="wood_mat" rgba="0.35 0.2 0.1 1"/>
+      <geom name="dchair2_leg2" type="cylinder" size="0.025 0.225" pos="-0.2 0.2 0.225" material="wood_mat" rgba="0.35 0.2 0.1 1"/>
+      <geom name="dchair2_leg3" type="cylinder" size="0.025 0.225" pos="0.2 -0.2 0.225" material="wood_mat" rgba="0.35 0.2 0.1 1"/>
+      <geom name="dchair2_leg4" type="cylinder" size="0.025 0.225" pos="-0.2 -0.2 0.225" material="wood_mat" rgba="0.35 0.2 0.1 1"/>
+    </body>
+
+    <!-- 餐椅3 -->
+    <body name="dining_chair3" pos="10.2 0 0">
+      <geom name="dchair3_seat" type="box" size="0.25 0.25 0.03" pos="0 0 0.45" material="wood_mat" rgba="0.35 0.2 0.1 1"/>
+      <geom name="dchair3_back" type="box" size="0.03 0.25 0.25" pos="-0.22 0 0.7" material="wood_mat" rgba="0.35 0.2 0.1 1"/>
+      <geom name="dchair3_leg1" type="cylinder" size="0.025 0.225" pos="0.2 0.2 0.225" material="wood_mat" rgba="0.35 0.2 0.1 1"/>
+      <geom name="dchair3_leg2" type="cylinder" size="0.025 0.225" pos="-0.2 0.2 0.225" material="wood_mat" rgba="0.35 0.2 0.1 1"/>
+      <geom name="dchair3_leg3" type="cylinder" size="0.025 0.225" pos="0.2 -0.2 0.225" material="wood_mat" rgba="0.35 0.2 0.1 1"/>
+      <geom name="dchair3_leg4" type="cylinder" size="0.025 0.225" pos="-0.2 -0.2 0.225" material="wood_mat" rgba="0.35 0.2 0.1 1"/>
+    </body>
+
+    <!-- 餐椅4 -->
+    <body name="dining_chair4" pos="7.8 0 0">
+      <geom name="dchair4_seat" type="box" size="0.25 0.25 0.03" pos="0 0 0.45" material="wood_mat" rgba="0.35 0.2 0.1 1"/>
+      <geom name="dchair4_back" type="box" size="0.03 0.25 0.25" pos="0.22 0 0.7" material="wood_mat" rgba="0.35 0.2 0.1 1"/>
+      <geom name="dchair4_leg1" type="cylinder" size="0.025 0.225" pos="0.2 0.2 0.225" material="wood_mat" rgba="0.35 0.2 0.1 1"/>
+      <geom name="dchair4_leg2" type="cylinder" size="0.025 0.225" pos="-0.2 0.2 0.225" material="wood_mat" rgba="0.35 0.2 0.1 1"/>
+      <geom name="dchair4_leg3" type="cylinder" size="0.025 0.225" pos="0.2 -0.2 0.225" material="wood_mat" rgba="0.35 0.2 0.1 1"/>
+      <geom name="dchair4_leg4" type="cylinder" size="0.025 0.225" pos="-0.2 -0.2 0.225" material="wood_mat" rgba="0.35 0.2 0.1 1"/>
+    </body>
+
+    <!-- ========== 相机系统 ========== -->
+    <camera name="fixed_overview" pos="0 -15 8" quat="0.92388 0.38268 0 0" fovy="60"/>
+    <camera name="bedroom_view" pos="-10 -5 3" quat="0.9239 0.3827 0 0" fovy="55"/>
+    <camera name="living_room_view" pos="0 10 4" quat="0.7071 0.7071 0 0" fovy="65"/>
+    <camera name="kitchen_view" pos="10 2 3.5" quat="0.8536 0.3536 -0.1464 -0.3536" fovy="60"/>
+    <camera name="robot_arm_view" pos="3.5 -1.5 1.5" xyaxes="-0.7071 0.7071 0 -0.3536 -0.3536 0.8660" fovy="50"/>
+    <camera name="mobile_robot_view" pos="0 2 1.5" xyaxes="0 -1 0 0.5 0 0.866" fovy="55"/>
+    <camera name="first_person_view" mode="targetbody" target="mobile_robot" pos="0 -0.3 0.3" fovy="80"/>
 
   </worldbody>
 
@@ -197,8 +421,41 @@
     <motor name="motor6" joint="joint6" gear="30" ctrllimited="true" ctrlrange="-1 1"/>
 
     <!-- 夹爪驱动器 -->
-    <motor name="gripper_left" joint="left_finger_joint" gear="10" ctrllimited="true" ctrlrange="-0.5 0.5"/>
-    <motor name="gripper_right" joint="right_finger_joint" gear="10" ctrllimited="true" ctrlrange="-0.5 0.5"/>
+    <motor name="gripper_left" joint="left_finger_joint" gear="20" ctrllimited="true" ctrlrange="0 0.5"/>
+    <motor name="gripper_right" joint="right_finger_joint" gear="20" ctrllimited="true" ctrlrange="0 0.5"/>
   </actuator>
+
+  <!-- ========== 传感器系统 ========== -->
+  <sensor>
+    <!-- 机械臂关节位置传感器 -->
+    <jointpos name="joint1_pos" joint="joint1"/>
+    <jointpos name="joint2_pos" joint="joint2"/>
+    <jointpos name="joint3_pos" joint="joint3"/>
+    <jointpos name="joint4_pos" joint="joint4"/>
+    <jointpos name="joint5_pos" joint="joint5"/>
+    <jointpos name="joint6_pos" joint="joint6"/>
+
+    <!-- 机械臂关节速度传感器 -->
+    <jointvel name="joint1_vel" joint="joint1"/>
+    <jointvel name="joint2_vel" joint="joint2"/>
+    <jointvel name="joint3_vel" joint="joint3"/>
+    <jointvel name="joint4_vel" joint="joint4"/>
+    <jointvel name="joint5_vel" joint="joint5"/>
+    <jointvel name="joint6_vel" joint="joint6"/>
+
+    <!-- 夹爪传感器 -->
+    <jointpos name="gripper_left_pos" joint="left_finger_joint"/>
+    <jointpos name="gripper_right_pos" joint="right_finger_joint"/>
+
+    <!-- 末端执行器力传感器 -->
+    <force name="ee_force" site="ee_site"/>
+    <torque name="ee_torque" site="ee_site"/>
+
+    <!-- 移动机器人传感器 -->
+    <framepos name="mobile_base_pos" objtype="site" objname="mobile_base_site"/>
+    <framequat name="mobile_base_quat" objtype="site" objname="mobile_base_site"/>
+    <framelinvel name="mobile_base_linvel" objtype="site" objname="mobile_base_site"/>
+    <frameangvel name="mobile_base_angvel" objtype="site" objname="mobile_base_site"/>
+  </sensor>
 
 </mujoco>
