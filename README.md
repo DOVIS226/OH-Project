@@ -95,10 +95,33 @@ mujoco_bedroom/
 ### 安装依赖
 ```bash
 pip install mujoco
-pip install mujoco-python-viewer  # 可选，用于可视化
+pip install numpy
 ```
 
-### 加载场景
+### 快速开始
+
+#### 1. 基础运行
+```bash
+# 使用默认设置运行（带演示动画）
+python test_scene.py
+
+# 跳过演示动画
+python test_scene.py --no-demo
+
+# 以30 FPS运行（降低性能要求）
+python test_scene.py --fps 30
+
+# 从特定相机视角启动
+python test_scene.py --camera robot_view
+
+# 仅显示场景信息
+python test_scene.py --info
+
+# 显示详细调试信息
+python test_scene.py --verbose
+```
+
+#### 2. 在Python中加载场景
 ```python
 import mujoco
 import mujoco.viewer
@@ -115,18 +138,121 @@ with mujoco.viewer.launch_passive(model, data) as viewer:
 ```
 
 ### 控制机械臂示例
+
+#### 基础位置控制
 ```python
-# 设置关节控制命令
-data.ctrl[0] = 1.0  # 控制基座旋转
-data.ctrl[1] = 0.5  # 控制肩关节
-# ... 设置其他关节
+import mujoco
+import numpy as np
 
-# 控制夹爪
-data.ctrl[6] = 0.3  # 左夹爪
-data.ctrl[7] = 0.3  # 右夹爪
+model = mujoco.MjModel.from_xml_path('bedroom_scene.xml')
+data = mujoco.MjData(model)
 
-# 执行仿真步
-mujoco.mj_step(model, data)
+# 设置关节目标位置（弧度）
+target_positions = [0.5, 0.3, -0.4, 0.2, 0.1, 0.0]
+
+# 在仿真循环中应用控制
+with mujoco.viewer.launch_passive(model, data) as viewer:
+    while viewer.is_running():
+        # 设置前6个执行器（机械臂关节）
+        for i in range(6):
+            data.ctrl[i] = target_positions[i]
+
+        # 设置夹爪（0-0.5，0表示闭合）
+        data.ctrl[6] = 0.3  # 左夹爪
+        data.ctrl[7] = 0.3  # 右夹爪
+
+        mujoco.mj_step(model, data)
+        viewer.sync()
+```
+
+#### 读取关节状态
+```python
+# 获取关节位置
+joint_positions = data.qpos[:6]  # 前6个关节
+print(f"关节位置: {joint_positions}")
+
+# 获取关节速度
+joint_velocities = data.qvel[:6]
+print(f"关节速度: {joint_velocities}")
+
+# 获取传感器数据
+sensor_data = data.sensordata
+print(f"传感器数据: {sensor_data}")
+
+# 获取末端执行器位置
+ee_site_id = model.site('ee_site').id
+ee_position = data.site_xpos[ee_site_id]
+print(f"末端执行器位置: {ee_position}")
+```
+
+#### 逆运动学示例
+```python
+import mujoco
+import numpy as np
+
+def move_to_position(model, data, target_pos, steps=1000):
+    """
+    使用简单的雅可比逆运动学将末端移动到目标位置
+
+    Args:
+        model: MuJoCo模型
+        data: MuJoCo数据
+        target_pos: 目标位置 [x, y, z]
+        steps: 最大迭代步数
+    """
+    ee_site_id = model.site('ee_site').id
+
+    for _ in range(steps):
+        # 获取当前末端位置
+        current_pos = data.site_xpos[ee_site_id].copy()
+
+        # 计算位置误差
+        error = target_pos - current_pos
+
+        if np.linalg.norm(error) < 0.01:  # 到达目标
+            break
+
+        # 计算雅可比矩阵
+        jacp = np.zeros((3, model.nv))
+        jacr = np.zeros((3, model.nv))
+        mujoco.mj_jacSite(model, data, jacp, jacr, ee_site_id)
+
+        # 使用伪逆计算关节速度
+        J_pinv = np.linalg.pinv(jacp[:, :6])
+        dq = J_pinv @ (error * 0.1)  # 比例控制
+
+        # 应用控制
+        data.ctrl[:6] = data.qpos[:6] + dq
+
+        # 执行仿真步
+        mujoco.mj_step(model, data)
+
+# 使用示例
+model = mujoco.MjModel.from_xml_path('bedroom_scene.xml')
+data = mujoco.MjData(model)
+
+# 移动到目标位置
+target = np.array([3.2, -1.8, 1.0])
+move_to_position(model, data, target)
+```
+
+### 传感器数据访问
+
+```python
+# 获取所有传感器名称
+for i in range(model.nsensor):
+    sensor_name = mujoco.mj_id2name(model, mujoco.mjtObj.mjOBJ_SENSOR, i)
+    print(f"传感器 {i}: {sensor_name}")
+
+# 读取特定传感器数据
+joint1_pos_sensor_id = mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_SENSOR, 'joint1_pos')
+joint1_position = data.sensordata[joint1_pos_sensor_id]
+print(f"关节1位置: {joint1_position}")
+
+# 读取力/力矩传感器
+force_sensor_id = mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_SENSOR, 'ee_force')
+ee_force = data.sensordata[force_sensor_id:force_sensor_id+3]
+print(f"末端执行器力: {ee_force}")
 ```
 
 ## 自定义与扩展
@@ -160,14 +286,205 @@ mujoco.mj_step(model, data)
 - **原点**: 房间地板中心
 
 ## 性能优化建议
-1. 如果不需要移动小车，可以注释掉对应的 `<body>` 块以提高性能
-2. 降低 `timestep` 值可提高精度，但会降低仿真速度
-3. 调整 `<visual>` 中的 `quality` 参数平衡渲染质量与性能
+1. **降低时间步长**：默认 timestep 为 0.002s，如果不需要高精度，可以增加到 0.005s
+2. **调整渲染质量**：修改 `<visual><quality shadowsize="1024"/>` 降低阴影分辨率
+3. **禁用不需要的物体**：注释掉装饰物体可以提高性能
+4. **降低求解器迭代次数**：将 `iterations` 从 50 降至 20-30
+5. **使用较低的 FPS**：运行 `python test_scene.py --fps 30` 而不是默认的 60
 
-## 已知问题与限制
-1. 场景中的家具为静态物体，不可移动
-2. 移动小车使用自由关节（freejoint），需要额外的控制器实现移动
-3. 纹理使用内置生成器，如需更真实效果请使用外部纹理图片
+## 故障排除
+
+### 常见问题
+
+#### 1. 导入错误：找不到 mujoco 模块
+```
+ModuleNotFoundError: No module named 'mujoco'
+```
+**解决方案**：
+```bash
+pip install mujoco --upgrade
+```
+
+#### 2. 场景加载失败
+```
+Error: XML Error: ... at line X
+```
+**解决方案**：
+- 检查 XML 文件格式是否正确
+- 确保所有引用的纹理和资源存在
+- 验证关节范围和物理参数合理性
+
+#### 3. 仿真不稳定或爆炸
+**症状**：物体飞出场景、速度异常、关节抖动
+
+**解决方案**：
+- 增加求解器迭代次数（`iterations`）
+- 降低时间步长（`timestep`）
+- 检查质量和惯性参数是否合理
+- 调整接触参数（`solimp`, `solref`）
+
+```xml
+<!-- 在 <option> 标签中 -->
+<option timestep="0.001" iterations="100" tolerance="1e-10"/>
+```
+
+#### 4. 渲染性能问题
+**症状**：帧率过低、卡顿
+
+**解决方案**：
+```bash
+# 降低目标帧率
+python test_scene.py --fps 30
+
+# 或在代码中调整
+```
+
+```xml
+<!-- 降低渲染质量 -->
+<visual>
+  <quality shadowsize="512"/>
+  <global offwidth="1280" offheight="720"/>
+</visual>
+```
+
+#### 5. 机械臂控制不响应
+**解决方案**：
+- 检查执行器索引是否正确
+- 确保控制值在 `ctrlrange` 范围内
+- 验证关节没有被锁定或卡住
+
+```python
+# 检查执行器信息
+for i in range(model.nu):
+    name = mujoco.mj_id2name(model, mujoco.mjtObj.mjOBJ_ACTUATOR, i)
+    ctrl_range = model.actuator_ctrlrange[i]
+    print(f"执行器 {i}: {name}, 范围: {ctrl_range}")
+```
+
+#### 6. 夹爪无法抓取物体
+**原因**：摩擦系数不足或接触参数不当
+
+**解决方案**：
+- 增加夹爪几何体的摩擦系数
+- 调整接触刚度和阻尼
+- 确保物体和夹爪的 contype/conaffinity 设置允许接触
+
+```xml
+<!-- 在夹爪几何体上 -->
+<geom ... friction="1.5 0.01 0.0001" solimp="0.99 0.99 0.001"/>
+```
+
+### 调试技巧
+
+#### 1. 启用详细日志
+```bash
+python test_scene.py --verbose
+```
+
+#### 2. 可视化接触力
+```python
+# 在viewer中启用接触力可视化
+# 按 Ctrl+F 或在GUI中启用 "Contact Forces"
+```
+
+#### 3. 打印物理诊断信息
+```python
+# 检查是否有接触
+print(f"接触数量: {data.ncon}")
+
+# 检查约束违反
+print(f"约束残差: {np.linalg.norm(data.efc_force)}")
+
+# 检查能量
+print(f"动能: {mujoco.mj_energyKin(model, data)}")
+print(f"势能: {mujoco.mj_energyPot(model, data)}")
+```
+
+#### 4. 录制仿真
+```python
+import mujoco
+import mediapy as media
+
+model = mujoco.MjModel.from_xml_path('bedroom_scene.xml')
+data = mujoco.MjData(model)
+renderer = mujoco.Renderer(model, 640, 480)
+
+frames = []
+for _ in range(300):
+    mujoco.mj_step(model, data)
+    renderer.update_scene(data)
+    pixels = renderer.render()
+    frames.append(pixels)
+
+media.write_video('simulation.mp4', frames, fps=60)
+```
+
+## API 参考
+
+### 关键数据结构
+
+#### MjModel - 模型静态信息
+```python
+model.nq          # 广义坐标数量
+model.nv          # 自由度数量
+model.nu          # 执行器数量
+model.nbody       # 刚体数量
+model.njnt        # 关节数量
+model.ngeom       # 几何体数量
+model.nsensor     # 传感器数量
+model.opt         # 仿真选项
+```
+
+#### MjData - 仿真动态数据
+```python
+data.time         # 当前仿真时间
+data.qpos         # 广义坐标（位置）
+data.qvel         # 广义速度
+data.ctrl         # 控制输入
+data.qacc         # 广义加速度
+data.qfrc_applied # 外部施加的力
+data.sensordata   # 传感器读数
+data.xpos         # 笛卡尔位置
+data.xquat        # 笛卡尔四元数
+```
+
+### 常用函数
+
+#### 仿真步进
+```python
+mujoco.mj_step(model, data)              # 完整仿真步
+mujoco.mj_forward(model, data)           # 仅正向动力学
+mujoco.mj_inverse(model, data)           # 逆向动力学
+```
+
+#### 雅可比计算
+```python
+jacp = np.zeros((3, model.nv))
+jacr = np.zeros((3, model.nv))
+mujoco.mj_jacSite(model, data, jacp, jacr, site_id)
+```
+
+#### ID转换
+```python
+# 名称转ID
+body_id = mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_BODY, 'robot_base')
+
+# ID转名称
+body_name = mujoco.mj_id2name(model, mujoco.mjtObj.mjOBJ_BODY, body_id)
+```
+
+### 场景配置参数说明
+
+| 参数 | 位置 | 说明 | 推荐值 |
+|------|------|------|--------|
+| timestep | `<option>` | 仿真时间步长(秒) | 0.001-0.005 |
+| iterations | `<option>` | 求解器迭代次数 | 20-100 |
+| tolerance | `<option>` | 求解器容差 | 1e-10 |
+| friction | `<geom>` | 摩擦系数 [滑动, 转动, 滚动] | [0.7, 0.005, 0.0001] |
+| damping | `<joint>` | 关节阻尼 | 0.5-2.0 |
+| armature | `<joint>` | 关节转动惯量 | 0.01-0.15 |
+| solimp | `<geom>` | 接触阻抗参数 | [0.9, 0.95, 0.001] |
+| solref | `<geom>` | 接触参考参数 | [0.02, 1] |
 
 ## 许可证
 本项目仅供学习和研究使用。
